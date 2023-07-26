@@ -244,7 +244,7 @@ module Zeitwerk
       basename = File.basename(abspath, ".rb")
       return if hidden?(basename)
 
-      cnames << inflector.camelize(basename, abspath).to_sym
+      cnames.concat Array(inflector.camelize(basename, abspath)).map(&:to_sym)
       abspaths << abspath
       walk_up_from = File.dirname(abspath)
     else
@@ -261,7 +261,7 @@ module Zeitwerk
       return if hidden?(basename)
 
       unless collapse?(dir)
-        cnames << inflector.camelize(basename, dir).to_sym
+        cnames.concat Array(inflector.camelize(basename, dir)).map(&:to_sym)
         abspaths << dir
       end
     end
@@ -425,14 +425,16 @@ module Zeitwerk
         begin
           if ruby?(basename)
             basename.delete_suffix!(".rb")
-            cname = inflector.camelize(basename, abspath).to_sym
-            autoload_file(parent, cname, abspath)
+            Array(inflector.camelize(basename, abspath)).map do |cname|
+              autoload_file(parent, cname.to_sym, abspath)
+            end
           else
             if collapse?(abspath)
               set_autoloads_in_dir(abspath, parent)
             else
-              cname = inflector.camelize(basename, abspath).to_sym
-              autoload_subdir(parent, cname, abspath)
+              Array(inflector.camelize(basename, abspath)).map do |cname|
+                autoload_subdir(parent, cname.to_sym, abspath)
+              end
             end
           end
         rescue ::NameError => error

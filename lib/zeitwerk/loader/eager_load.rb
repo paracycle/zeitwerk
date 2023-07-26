@@ -49,7 +49,7 @@ module Zeitwerk::Loader::EagerLoad
       return if hidden?(basename)
 
       unless collapse?(dir)
-        cnames << inflector.camelize(basename, dir).to_sym
+        cnames.concat Array(inflector.camelize(basename, dir)).map(&:to_sym)
       end
     end
 
@@ -123,7 +123,7 @@ module Zeitwerk::Loader::EagerLoad
     basename = File.basename(abspath, ".rb")
     raise Zeitwerk::Error.new("#{abspath} is ignored") if hidden?(basename)
 
-    base_cname = inflector.camelize(basename, abspath).to_sym
+    base_cname = Array(inflector.camelize(basename, abspath)).first.to_sym
 
     root_namespace = nil
     cnames = []
@@ -137,7 +137,7 @@ module Zeitwerk::Loader::EagerLoad
       raise Zeitwerk::Error.new("#{abspath} is ignored") if hidden?(basename)
 
       unless collapse?(dir)
-        cnames << inflector.camelize(basename, dir).to_sym
+        cnames.concat Array(inflector.camelize(basename, dir)).map(&:to_sym)
       end
     end
 
@@ -178,8 +178,9 @@ module Zeitwerk::Loader::EagerLoad
           if collapse?(abspath)
             queue << [abspath, namespace]
           else
-            cname = inflector.camelize(basename, abspath).to_sym
-            queue << [abspath, cget(namespace, cname)]
+            Array(inflector.camelize(basename, abspath)).map do |cname|
+              queue << [abspath, cget(namespace, cname.to_sym)]
+            end
           end
         end
       end
@@ -215,7 +216,7 @@ module Zeitwerk::Loader::EagerLoad
 
           if collapse?(abspath)
             dirs << abspath
-          elsif segment == inflector.camelize(basename, abspath)
+          elsif Array(inflector.camelize(basename, abspath)).include?(segment)
             next_dirs << abspath
           end
         end

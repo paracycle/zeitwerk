@@ -47,11 +47,12 @@ module Zeitwerk
         next if abspath == expected_namespace_dir
 
         basename_without_ext = basename.delete_suffix(".rb")
-        cname = inflector.camelize(basename_without_ext, abspath).to_sym
+        cnames = Array(inflector.camelize(basename_without_ext, abspath)).map(&:to_sym)
         ftype = dir?(abspath) ? "directory" : "file"
+        plural = cnames.size > 1 ? "s" : ""
 
         warn(<<~EOS)
-          WARNING: Zeitwerk defines the constant #{cname} after the #{ftype}
+          WARNING: Zeitwerk defines the constant#{plural} #{cnames.join(", ")} after the #{ftype}
 
               #{abspath}
 
